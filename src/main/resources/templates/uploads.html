@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+        <link rel="stylesheet" th:href="@{/css/uploads.css}">
+    </head>
+    <body>
+        <div style="margin-left: auto">
+            <h1>List of Files:</h1>
+            <div th:each="file : ${files1}">
+                <a th:href="@{'/file/1/' + ${file.getName()}}"><span th:text="${file.getName()}"></span></a>
+                <span th:text="${file.length() / 1024}"></span>KB
+            </div>
+        </div>
+
+        <div style="margin-right: auto">
+            <h1>List of Files:</h1>
+            <div th:each="file : ${files2}">
+                <a th:href="@{'/file/2/' + ${file.getName()}}"><span th:text="${file.getName()}"></span></a>
+                <span th:text="${file.length() / 1024}"></span>KB
+            </div>
+        </div>
+
+        <div style="width: 800px; height: 400px; overflow-y: scroll; margin-left: 2%;">
+            <pre th:utext="${content}">
+            </pre>
+        </div>
+    </body>
+</html>
