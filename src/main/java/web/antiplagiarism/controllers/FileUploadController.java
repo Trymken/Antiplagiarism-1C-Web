@@ -4,23 +4,18 @@ package web.antiplagiarism.controllers;
 import algorithms.Start;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.unbescape.html.HtmlEscape;
 
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -85,7 +80,7 @@ public class FileUploadController {
     }
 
     @RequestMapping("/uploads")
-    public String uploadsListPage(@ModelAttribute("filesPath") String folderPath, Model model) throws IOException, NoSuchAlgorithmException {
+    public String uploadsListPage(@ModelAttribute("filesPath") String folderPath, Model model, RedirectAttributes attributes) throws IOException, NoSuchAlgorithmException {
         File folder1 = new File(folderPath + '\\' + '1');
         File folder2 = new File(folderPath + '\\' + '2');
 
@@ -99,7 +94,11 @@ public class FileUploadController {
             start = new Start(listOfFiles1[0].getAbsolutePath(), listOfFiles2[0].getAbsolutePath(), "sha-1");
         }
 
-        return "uploads";
+        attributes.addFlashAttribute("file1", listOfFiles1[0].getAbsolutePath());
+        attributes.addFlashAttribute("file2", listOfFiles2[0].getAbsolutePath());
+        attributes.addFlashAttribute("score", start.getWinnowing().getScore());
+
+        return "redirect:/files";
     }
 
     @RequestMapping("/file/{index}/{filename}")
@@ -127,8 +126,38 @@ public class FileUploadController {
 
         result = highlightText(content, list);
 
-        model.addAttribute("content", result);
+        if(index == '1'){
+            model.addAttribute("content1", result);
+        } else {
+            model.addAttribute("content2", result);
+        }
+
         return "uploads";
     }
 
+
+    @RequestMapping("/files")
+    public String showFiles(@ModelAttribute("file1") String file1,
+                            @ModelAttribute("file2") String file2,
+                            @ModelAttribute("score") String score,
+                            Model model) throws IOException {
+
+        List<String> content1 = Files.readAllLines(Path.of(file1));
+        List<String> content2 = Files.readAllLines(Path.of(file2));
+
+        String result1, result2;
+        ArrayList<int[]> list1, list2;
+
+        list1 = start.getIntervals1();
+        list2 = start.getIntervals2();
+
+        result1 = highlightText(content1, list1);
+        result2 = highlightText(content2, list2);
+
+        model.addAttribute("content1", result1);
+        model.addAttribute("content2", result2);
+        model.addAttribute("score", "Score: " + score);
+
+        return "files";
+    }
 }

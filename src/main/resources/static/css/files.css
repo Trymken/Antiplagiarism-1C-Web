@@ -19,3 +19,9 @@
     float: left;
     width: 100%;
 }
+
+.center-div {
+    float: left;
+    width: 100%;
+    text-align: center;
+}

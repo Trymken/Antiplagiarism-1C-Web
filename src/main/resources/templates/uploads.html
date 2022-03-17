@@ -7,25 +7,37 @@
         <link rel="stylesheet" th:href="@{/css/uploads.css}">
     </head>
     <body>
-        <div style="margin-left: auto">
-            <h2>List of Files:</h2>
-            <div th:each="file : ${files1}">
-                <a th:href="@{'/file/1/' + ${file.getName()}}"><span th:text="${file.getName()}"></span></a>
-                <span th:text="${file.length() / 1024}"></span>KB
-            </div>
-        </div>
+        <div class="main">
 
-        <div style="margin-right: auto">
-            <h2>List of Files:</h2>
-            <div th:each="file : ${files2}">
-                <a th:href="@{'/file/2/' + ${file.getName()}}"><span th:text="${file.getName()}"></span></a>
-                <span th:text="${file.length() / 1024}"></span>KB
-            </div>
-        </div>
+            <div class="block">
+                <div class="listoffiles">
+                    <h3>List of Files:</h3>
+                    <div th:each="file : ${files2}">
+                        <a th:href="@{'/file/2/' + ${file.getName()}}"><span th:text="${file.getName()}"></span></a>
+                        <span th:text="${file.length() / 1024}"></span>KB
+                    </div>
+                </div>
 
-        <div style="width: 800px; height: 400px; overflow-y: scroll; margin-left: 2%;">
-            <pre th:utext="${content}">
-            </pre>
+                <div class="code">
+                    <pre th:utext="${content2}"></pre>
+                </div>
+            </div>
+
+
+            <div class="block">
+                <div class="listoffiles">
+                    <h3>List of Files:</h3>
+                    <div th:each="file : ${files1}">
+                        <a th:href="@{'/file/1/' + ${file.getName()}}"><span th:text="${file.getName()}"></span></a>
+                        <span th:text="${file.length() / 1024}"></span>KB
+                    </div>
+                </div>
+
+                <div class="code">
+                    <pre th:utext="${content1}"></pre>
+                </div>
+            </div>
+
         </div>
     </body>
 </html>

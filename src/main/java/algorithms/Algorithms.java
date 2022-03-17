@@ -98,7 +98,7 @@ public class Algorithms {
 
         for (int[] a : list) {
             for (int i = a[0]; i <= a[1]; i++) {
-                strings.set(i - 1, "<span id=\"redflag\">" + strings.get(i - 1) + "</span>");
+                strings.set(i - 1, "<span class=\"redflag\">" + strings.get(i - 1) + "</span>");
             }
         }
 

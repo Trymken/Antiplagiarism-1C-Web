@@ -104,8 +104,8 @@ public class Start {
         Collections.sort(positions1);
         Collections.sort(positions2);
 
-        intervals1 = getSequences(positions1, 10);
-        intervals2 = getSequences(positions2, 10);
+        intervals1 = getSequences(positions1, Winnowing.getNgramLength());
+        intervals2 = getSequences(positions2, Winnowing.getNgramLength());
 
         intervals1 = getLineIntervals(intervals1, tokensList1);
         intervals2 = getLineIntervals(intervals2, tokensList2);

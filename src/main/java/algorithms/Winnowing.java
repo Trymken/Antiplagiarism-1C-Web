@@ -11,8 +11,8 @@ import static algorithms.Algorithms.hashing;
 
 public class Winnowing {
 
-    private static final int shingleLength = 10;
-    private static final int windowLength = 4;
+    private static int ngramLength = 10;
+    private static int windowLength = 4;
 
     private ArrayList<Integer> positions1, positions2;
     private double scoreMin, scoreMax, scoreLength, score;
@@ -35,8 +35,8 @@ public class Winnowing {
 
     private static ArrayList<byte[]> getHashNgrams(String s, String algo) throws NoSuchAlgorithmException {
         ArrayList<byte[]> arrayList = new ArrayList<>();
-        for (int i = 0; i <= s.length() - shingleLength; i++) {
-            String temp = s.substring(i, i + shingleLength);
+        for (int i = 0; i <= s.length() - ngramLength; i++) {
+            String temp = s.substring(i, i + ngramLength);
             arrayList.add(hashing(temp, algo));
         }
         return arrayList;
@@ -72,7 +72,7 @@ public class Winnowing {
                         position = j;
                     }
                 }
-                result.add(new Ngram(hash, position, shingleLength));
+                result.add(new Ngram(hash, position, ngramLength));
                 continue;
             }
 
@@ -87,7 +87,7 @@ public class Winnowing {
                 counter++;
             }
             if(position != result.get(result.size() - 1).getPosition()){
-                result.add(new Ngram(hash, position, shingleLength));
+                result.add(new Ngram(hash, position, ngramLength));
             }
 
         }
@@ -134,4 +134,20 @@ public class Winnowing {
     }
 
     public ArrayList<Integer> getPositions2() {return positions2;}
+
+    public static int getNgramLength() {
+        return ngramLength;
+    }
+
+    public static void setNgramLength(int ngramLength) {
+        Winnowing.ngramLength = ngramLength;
+    }
+
+    public static int getWindowLength() {
+        return windowLength;
+    }
+
+    public static void setWindowLength(int windowLength) {
+        Winnowing.windowLength = windowLength;
+    }
 }
