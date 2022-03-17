@@ -8,7 +8,7 @@
     </head>
     <body>
         <div style="margin-left: auto">
-            <h1>List of Files:</h1>
+            <h2>List of Files:</h2>
             <div th:each="file : ${files1}">
                 <a th:href="@{'/file/1/' + ${file.getName()}}"><span th:text="${file.getName()}"></span></a>
                 <span th:text="${file.length() / 1024}"></span>KB
@@ -16,7 +16,7 @@
         </div>
 
         <div style="margin-right: auto">
-            <h1>List of Files:</h1>
+            <h2>List of Files:</h2>
             <div th:each="file : ${files2}">
                 <a th:href="@{'/file/2/' + ${file.getName()}}"><span th:text="${file.getName()}"></span></a>
                 <span th:text="${file.length() / 1024}"></span>KB

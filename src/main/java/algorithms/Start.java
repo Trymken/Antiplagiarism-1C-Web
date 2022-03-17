@@ -96,8 +96,6 @@ public class Start {
         String s1 = getTokens(text1);
         String s2 = getTokens(text2);
 
-        swapTokens();
-
         winnowing = new Winnowing(s1, s2, algorithm);
 
         ArrayList<Integer> positions1 = winnowing.getPositions1();
@@ -125,12 +123,4 @@ public class Start {
         return winnowing;
     }
 
-    private void swapTokens(){
-        if(tokensList1.size() > tokensList2.size()){
-            CommonTokenStream temp;
-            temp = tokensList1;
-            tokensList1 = tokensList2;
-            tokensList2 = temp;
-        }
-    }
 }

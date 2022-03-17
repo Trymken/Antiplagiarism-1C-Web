@@ -43,44 +43,12 @@ public class Winnowing {
     }
 
 
-    private ArrayList<Integer> compare1(ArrayList<Ngram> l1, ArrayList<Ngram> l2){
-        long count = 0;
+    private ArrayList<Integer> compare(ArrayList<Ngram> l1, ArrayList<Ngram> l2){
         ArrayList<Integer> result = new ArrayList<>();
 
-        if(l1.size() > l2.size()){
-            ArrayList<Ngram> temp = l1;
-            l1 = l2;
-            l2 = temp;
-        }
-
-        for (int i = 0; i < l1.size(); i++) {
-            if(l2.contains(l1.get(i))){
-                result.add(l1.get(i).getPosition()); //TODO поменять
-                count++;
-            }
-        }
-
-        this.scoreMin = (count * 1. / Math.min(l1.size(), l2.size())) * 100;
-        this.scoreMax = (count * 1. / Math.max(l1.size(), l2.size())) * 100;
-        this.scoreLength = (count * 1. / (l1.size() + l2.size())) * 100;
-        this.score = (this.scoreMin + this.scoreMax + this.scoreLength) / 3.;
-
-        return result;
-    }
-
-
-    private ArrayList<Integer> compare2(ArrayList<Ngram> l1, ArrayList<Ngram> l2){
-        ArrayList<Integer> result = new ArrayList<>();
-
-        if(l1.size() < l2.size()){
-            ArrayList<Ngram> temp = l1;
-            l1 = l2;
-            l2 = temp;
-        }
-
-        for (int i = 0; i < l1.size(); i++) {
-            if(l2.contains(l1.get(i))){
-                result.add(l1.get(i).getPosition());
+        for (Ngram ngram : l1) {
+            if (l2.contains(ngram)) {
+                result.add(ngram.getPosition());
             }
         }
 
@@ -134,8 +102,15 @@ public class Winnowing {
         ArrayList<Ngram> winnowing1 = winnowing(ngrams1);
         ArrayList<Ngram> winnowing2 = winnowing(ngrams2);
 
-        this.positions1 = compare1(winnowing1, winnowing2);
-        this.positions2 = compare2(winnowing2, winnowing1);
+        this.positions1 = compare(winnowing1, winnowing2);
+        this.positions2 = compare(winnowing2, winnowing1);
+
+        int min = Math.min(positions1.size(), positions2.size());
+
+        this.scoreMin = (min * 1. / Math.min(positions1.size(), positions2.size())) * 100;
+        this.scoreMax = (min * 1. / Math.max(positions1.size(), positions2.size())) * 100;
+        this.scoreLength = (min * 1. / (positions1.size() + positions2.size())) * 100;
+        this.score = (this.scoreMin + this.scoreMax + this.scoreLength) / 3.;
     }
 
     public ArrayList<Integer> getPositions1() {
