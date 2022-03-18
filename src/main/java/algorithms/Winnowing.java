@@ -11,7 +11,7 @@ import static algorithms.Algorithms.hashing;
 
 public class Winnowing {
 
-    private static int ngramLength = 10;
+    private static int ngramLength = 20;
     private static int windowLength = 4;
 
     private ArrayList<Integer> positions1, positions2;
@@ -107,9 +107,9 @@ public class Winnowing {
 
         int min = Math.min(positions1.size(), positions2.size());
 
-        this.scoreMin = (min * 1. / Math.min(positions1.size(), positions2.size())) * 100;
-        this.scoreMax = (min * 1. / Math.max(positions1.size(), positions2.size())) * 100;
-        this.scoreLength = (min * 1. / (positions1.size() + positions2.size())) * 100;
+        this.scoreMin = (min * 1. / Math.min(winnowing1.size(), winnowing2.size())) * 100;
+        this.scoreMax = (min * 1. / Math.max(winnowing1.size(), winnowing2.size())) * 100;
+        this.scoreLength = (min * 1. / (winnowing1.size() + winnowing2.size())) * 100;
         this.score = (this.scoreMin + this.scoreMax + this.scoreLength) / 3.;
     }
 

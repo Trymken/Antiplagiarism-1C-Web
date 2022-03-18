@@ -7,8 +7,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.WebUtils;
 
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,7 +29,6 @@ import static algorithms.Algorithms.highlightText;
 public class FileUploadController {
 
     public static String uploadDirectory =  "./uploads";
-    public static String uuid;
     public static Start start;
 
 
@@ -37,7 +40,10 @@ public class FileUploadController {
     @PostMapping("/")
     public String handleFileUpload(@RequestParam("file1") MultipartFile[] files1,
                                    @RequestParam("file2") MultipartFile[] files2,
-                                   RedirectAttributes redirectAttributes) throws IOException {
+                                   RedirectAttributes redirectAttributes,
+                                   HttpServletResponse response) throws IOException {
+
+        Cookie cookie = new Cookie("uuid", UUID.randomUUID().toString());
 
         if (files1 != null) {
             File uploadDir = new File(uploadDirectory);
@@ -46,7 +52,8 @@ public class FileUploadController {
             }
         }
 
-        uuid = UUID.randomUUID().toString();
+        String uuid = cookie.getValue();
+
         File uploadDir = new File(uploadDirectory + '\\' + uuid);
         File dir1 = new File(uploadDirectory + '\\' + uuid + '\\' + '1');
         File dir2 = new File(uploadDirectory + '\\' + uuid + '\\' + '2');
@@ -74,13 +81,17 @@ public class FileUploadController {
             Path path = Paths.get(dir2.getAbsolutePath(), filename);
             Files.write(path, file.getBytes());
         }
-        redirectAttributes.addFlashAttribute("filesPath", uploadDir.getAbsolutePath());
 
-        return "redirect:/uploads";
+        response.addCookie(cookie);
+
+        return "redirect:/files";
     }
 
     @RequestMapping("/uploads")
-    public String uploadsListPage(@ModelAttribute("filesPath") String folderPath, Model model, RedirectAttributes attributes) throws IOException, NoSuchAlgorithmException {
+    public String uploadsListPage(@ModelAttribute("filesPath") String folderPath,
+                                  Model model,
+                                  RedirectAttributes attributes) throws IOException, NoSuchAlgorithmException {
+
         File folder1 = new File(folderPath + '\\' + '1');
         File folder2 = new File(folderPath + '\\' + '2');
 
@@ -90,9 +101,7 @@ public class FileUploadController {
         model.addAttribute("files1", listOfFiles1);
         model.addAttribute("files2", listOfFiles2);
 
-        if(start == null){
-            start = new Start(listOfFiles1[0].getAbsolutePath(), listOfFiles2[0].getAbsolutePath(), "sha-1");
-        }
+        start = new Start(listOfFiles1[0].getAbsolutePath(), listOfFiles2[0].getAbsolutePath(), "sha-1");
 
         attributes.addFlashAttribute("file1", listOfFiles1[0].getAbsolutePath());
         attributes.addFlashAttribute("file2", listOfFiles2[0].getAbsolutePath());
@@ -102,7 +111,14 @@ public class FileUploadController {
     }
 
     @RequestMapping("/file/{index}/{filename}")
-    public String show(@PathVariable("index") Character index, @PathVariable("filename") String filename, Model model) throws IOException {
+    public String show(@PathVariable("index") Character index,
+                       @PathVariable("filename") String filename,
+                       Model model,
+                       HttpServletRequest request) throws IOException {
+
+        Cookie cookie = WebUtils.getCookie(request, "uuid");
+        String uuid = cookie.getValue();
+
         String folderPath = uploadDirectory + '\\' + uuid;
 
         File folder1 = new File(folderPath + '\\' + '1');
@@ -137,13 +153,17 @@ public class FileUploadController {
 
 
     @RequestMapping("/files")
-    public String showFiles(@ModelAttribute("file1") String file1,
-                            @ModelAttribute("file2") String file2,
-                            @ModelAttribute("score") String score,
-                            Model model) throws IOException {
+    public String showFiles(Model model, HttpServletRequest request) throws IOException, NoSuchAlgorithmException {
 
-        List<String> content1 = Files.readAllLines(Path.of(file1));
-        List<String> content2 = Files.readAllLines(Path.of(file2));
+        String uploadLocalDir = uploadDirectory + '\\' + WebUtils.getCookie(request, "uuid").getValue();
+
+        File file1 = new File(uploadLocalDir + '\\' + '1').listFiles()[0];
+        File file2 = new File(uploadLocalDir + '\\' + '2').listFiles()[0];
+
+        start = new Start(file1.getAbsolutePath(), file2.getAbsolutePath(), "sha-1");
+
+        List<String> content1 = Files.readAllLines(Path.of(file1.getPath()));
+        List<String> content2 = Files.readAllLines(Path.of(file2.getPath()));
 
         String result1, result2;
         ArrayList<int[]> list1, list2;
@@ -156,7 +176,7 @@ public class FileUploadController {
 
         model.addAttribute("content1", result1);
         model.addAttribute("content2", result2);
-        model.addAttribute("score", "Score: " + score);
+        model.addAttribute("score", "Score: " + start.getWinnowing().getScore());
 
         return "files";
     }
