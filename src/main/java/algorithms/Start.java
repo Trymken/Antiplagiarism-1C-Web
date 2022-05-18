@@ -47,8 +47,8 @@ public class Start {
             lines[tokensList.get(i).getLine()][0]++;
         }
 
-        for (int i = 0; i < positions.size(); i++) {
-            lines[tokensList.get(positions.get(i)).getLine()][1]++;
+        for (Integer position : positions) {
+            lines[tokensList.get(position).getLine()][1]++;
         }
 
         int line;
@@ -86,8 +86,8 @@ public class Start {
 
     public static ArrayList<int[]> getLineIntervals(ArrayList<int[]> list, CommonTokenStream tokensList){
         ArrayList<int[]> result = new ArrayList<>();
-        for (int i = 0; i < list.size(); i++) {
-            result.add(new int[]{tokensList.get(list.get(i)[0]).getLine(), tokensList.get(list.get(i)[1]).getLine()});
+        for (int[] ints : list) {
+            result.add(new int[]{tokensList.get(ints[0]).getLine(), tokensList.get(ints[1]).getLine()});
         }
         return result;
     }
@@ -101,14 +101,16 @@ public class Start {
         ArrayList<Integer> positions1 = winnowing.getPositions1();
         ArrayList<Integer> positions2 = winnowing.getPositions2();
 
-        Collections.sort(positions1);
-        Collections.sort(positions2);
+        if (positions1.size() > 0 && positions2.size() > 0) {
+            Collections.sort(positions1);
+            Collections.sort(positions2);
 
-        intervals1 = getSequences(positions1, Winnowing.getNgramLength());
-        intervals2 = getSequences(positions2, Winnowing.getNgramLength());
+            intervals1 = getSequences(positions1, Winnowing.getNgramLength());
+            intervals2 = getSequences(positions2, Winnowing.getNgramLength());
 
-        intervals1 = getLineIntervals(intervals1, tokensList1);
-        intervals2 = getLineIntervals(intervals2, tokensList2);
+            intervals1 = getLineIntervals(intervals1, tokensList1);
+            intervals2 = getLineIntervals(intervals2, tokensList2);
+        }
     }
 
     public ArrayList<int[]> getIntervals1() {

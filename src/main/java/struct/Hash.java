@@ -1,3 +1,4 @@
+
 package struct;
 
 import java.security.NoSuchAlgorithmException;

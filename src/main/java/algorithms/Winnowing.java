@@ -11,8 +11,8 @@ import static algorithms.Algorithms.hashing;
 
 public class Winnowing {
 
-    private static int ngramLength = 20;
-    private static int windowLength = 4;
+    private static int ngramLength = 20; //10
+    private static int windowLength = 5; //4
 
     private ArrayList<Integer> positions1, positions2;
     private double scoreMin, scoreMax, scoreLength, score;

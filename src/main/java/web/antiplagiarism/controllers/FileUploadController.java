@@ -1,6 +1,7 @@
 package web.antiplagiarism.controllers;
 
 
+import algorithms.FileWalker;
 import algorithms.Start;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,9 +22,10 @@ import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
-import static algorithms.Algorithms.highlightText;
+import static algorithms.Algorithms.*;
 
 @Controller
 public class FileUploadController {
@@ -38,14 +40,14 @@ public class FileUploadController {
     }
 
     @PostMapping("/")
-    public String handleFileUpload(@RequestParam("file1") MultipartFile[] files1,
-                                   @RequestParam("file2") MultipartFile[] files2,
+    public String handleFileUpload(@RequestParam("file1") MultipartFile file1,
+                                   @RequestParam("file2") MultipartFile file2,
                                    RedirectAttributes redirectAttributes,
                                    HttpServletResponse response) throws IOException {
 
         Cookie cookie = new Cookie("uuid", UUID.randomUUID().toString());
 
-        if (files1 != null) {
+        if (file1 != null) {
             File uploadDir = new File(uploadDirectory);
             if (!uploadDir.exists()) {
                 uploadDir.mkdir();
@@ -70,17 +72,13 @@ public class FileUploadController {
             dir2.mkdir();
         }
 
-        for (MultipartFile file : files1) {
-            String filename = file.getOriginalFilename();
-            Path path = Paths.get(dir1.getAbsolutePath(), filename);
-            Files.write(path, file.getBytes());
-        }
+        String filename = file1.getOriginalFilename();
+        Path path = Paths.get(dir1.getAbsolutePath(), filename);
+        unZipFile(file1.getInputStream(), path.toString());
 
-        for (MultipartFile file : files2) {
-            String filename = file.getOriginalFilename();
-            Path path = Paths.get(dir2.getAbsolutePath(), filename);
-            Files.write(path, file.getBytes());
-        }
+        filename = file2.getOriginalFilename();
+        path = Paths.get(dir2.getAbsolutePath(), filename);
+        unZipFile(file2.getInputStream(), path.toString());
 
         response.addCookie(cookie);
 
@@ -153,31 +151,43 @@ public class FileUploadController {
 
 
     @RequestMapping("/files")
-    public String showFiles(Model model, HttpServletRequest request) throws IOException, NoSuchAlgorithmException {
+    public String showFiles(Model model, HttpServletRequest request) throws
+            IOException,
+            NoSuchAlgorithmException {
 
-        String uploadLocalDir = uploadDirectory + '\\' + WebUtils.getCookie(request, "uuid").getValue();
+        String uploadLocalDir = uploadDirectory + '\\' + Objects.
+                requireNonNull(WebUtils.getCookie(request, "uuid")).getValue();
 
-        File file1 = new File(uploadLocalDir + '\\' + '1').listFiles()[0];
-        File file2 = new File(uploadLocalDir + '\\' + '2').listFiles()[0];
+//        File file1 = Objects.requireNonNull(new File(uploadLocalDir + '\\' + '1').listFiles())[0];
+//        File file2 = Objects.requireNonNull(new File(uploadLocalDir + '\\' + '2').listFiles())[0];
+//
+//        start = new Start(file1.getAbsolutePath(), file2.getAbsolutePath(), "sha-1");
+//
+//        List<String> content1 = Files.readAllLines(Path.of(file1.getPath()));
+//        List<String> content2 = Files.readAllLines(Path.of(file2.getPath()));
+//
+//        String result1, result2;
+//        ArrayList<int[]> list1, list2;
+//
+//        list1 = start.getIntervals1();
+//        list2 = start.getIntervals2();
+//
+//        result1 = highlightText(content1, list1);
+//        result2 = highlightText(content2, list2);
 
-        start = new Start(file1.getAbsolutePath(), file2.getAbsolutePath(), "sha-1");
+        FileWalker fw1 = new FileWalker();
+        FileWalker fw2 = new FileWalker();
+        fw1.walk(uploadLocalDir + '\\' + '1');
+        fw2.walk(uploadLocalDir + '\\' + '2');
 
-        List<String> content1 = Files.readAllLines(Path.of(file1.getPath()));
-        List<String> content2 = Files.readAllLines(Path.of(file2.getPath()));
+        cartesianProduct(fw1.getListFiles(), fw2.getListFiles(), uploadLocalDir);
 
-        String result1, result2;
-        ArrayList<int[]> list1, list2;
-
-        list1 = start.getIntervals1();
-        list2 = start.getIntervals2();
-
-        result1 = highlightText(content1, list1);
-        result2 = highlightText(content2, list2);
-
-        model.addAttribute("content1", result1);
-        model.addAttribute("content2", result2);
-        model.addAttribute("score", "Score: " + start.getWinnowing().getScore());
+//        model.addAttribute("content1", result1);
+//        model.addAttribute("content2", result2);
+//        model.addAttribute("score", "Score: " + start.getWinnowing().getScore());
 
         return "files";
     }
 }
+
+

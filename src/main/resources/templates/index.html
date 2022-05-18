@@ -1,17 +1,21 @@
 <!DOCTYPE html>
-<html xmlns:th="http://thymeleaf.org" lang="en">
+<html lang="en">
     <head>
         <meta charset="UTF-8">
         <title>Home</title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+<!--        <link rel="stylesheet" th:href="@{/css/index.css}">-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+<!--        <script th:src="@{/js/drag.js}"></script>-->
     </head>
     <body>
-        <form method="post" enctype="multipart/form-data" class="dropzone" action="/">
-            Files:
-            <input type="file" name="file1" multiple><br>
-            <input type="file" name="file2" multiple><br>
-            <input type="submit" value="Upload"> Press here to upload the file!
+        <form method="post" enctype="multipart/form-data" action="/">
+            File1 (.zip):
+            <input type="file" name="file1"><br>
+            File2 (.zip):
+            <input type="file" name="file2"><br>
+            <input type="submit" value="Upload"> Press here to upload
         </form>
     </body>
 </html>
