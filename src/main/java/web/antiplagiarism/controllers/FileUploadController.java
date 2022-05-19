@@ -49,7 +49,7 @@ public class FileUploadController {
 
         Cookie cookie = new Cookie("uuid", UUID.randomUUID().toString());
 
-        if (file1 != null && file2 != null) { //TODO сделать нормальную проверку
+        if (file1 != null && file2 != null) {
             String extension1 = getFileExtension(file1.getOriginalFilename());
             String extension2 = getFileExtension(file2.getOriginalFilename());
             if (extensions.contains(extension1) && extensions.contains(extension2)){
