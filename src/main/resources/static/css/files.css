@@ -12,12 +12,14 @@
     margin: 1% 5% 1% 1%;
     width: 42%;
     height: 600px;
-    overflow-y: scroll;
+    overflow-x: scroll;
 }
 
 .code {
     float: left;
     width: 100%;
+    height: 600px;
+    overflow-x: scroll;
 }
 
 .center-div {

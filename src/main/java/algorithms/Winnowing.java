@@ -109,7 +109,7 @@ public class Winnowing {
 
         this.scoreMin = (min * 1. / Math.min(winnowing1.size(), winnowing2.size())) * 100;
         this.scoreMax = (min * 1. / Math.max(winnowing1.size(), winnowing2.size())) * 100;
-        this.scoreLength = (min * 1. / (winnowing1.size() + winnowing2.size())) * 100;
+        this.scoreLength = (min * 2. / (winnowing1.size() + winnowing2.size())) * 100;
         this.score = (this.scoreMin + this.scoreMax + this.scoreLength) / 3.;
     }
 

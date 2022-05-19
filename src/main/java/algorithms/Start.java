@@ -1,7 +1,9 @@
 package algorithms;
 
-import antlr4.OneCLexer;
-import antlr4.OneCParser;
+import antlr4.oneC.OneCLexer;
+import antlr4.oneC.OneCParser;
+import antlr4.xml.XMLLexer;
+import antlr4.xml.XMLParser;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
@@ -24,6 +26,33 @@ public class Start {
     private final Winnowing winnowing;
 
 
+    public Start(String text1, String text2, String algorithm, boolean isXML) throws IOException, NoSuchAlgorithmException {
+        String s1, s2;
+        if(!isXML) {
+            s1 = getTokens(text1);
+            s2 = getTokens(text2);
+        } else {
+            s1 = getXMLTokens(text1);
+            s2 = getXMLTokens(text2);
+        }
+        winnowing = new Winnowing(s1, s2, algorithm);
+
+        ArrayList<Integer> positions1 = winnowing.getPositions1();
+        ArrayList<Integer> positions2 = winnowing.getPositions2();
+
+        if (positions1.size() > 0 && positions2.size() > 0) {
+            Collections.sort(positions1);
+            Collections.sort(positions2);
+
+            intervals1 = getSequences(positions1, Winnowing.getNgramLength());
+            intervals2 = getSequences(positions2, Winnowing.getNgramLength());
+
+            intervals1 = getLineIntervals(intervals1, tokensList1);
+            intervals2 = getLineIntervals(intervals2, tokensList2);
+        }
+    }
+
+
     public String getTokens(String str) throws IOException {
         String content = Files.readString(Path.of(str));
         content = content.toLowerCase();
@@ -33,6 +62,23 @@ public class Start {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         OneCParser parser = new OneCParser(tokens);
         parser.startFile();
+        if(tokensList1 == null)
+            tokensList1 = tokens;
+        else
+            tokensList2 = tokens;
+
+        return setTokens(tokens);
+    }
+
+    public String getXMLTokens(String str) throws IOException {
+        String content = Files.readString(Path.of(str));
+        content = content.toLowerCase();
+
+        XMLLexer lexer = new XMLLexer(CharStreams.fromString(content));
+
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        XMLParser parser = new XMLParser(tokens);
+        parser.document();
         if(tokensList1 == null)
             tokensList1 = tokens;
         else
@@ -90,27 +136,6 @@ public class Start {
             result.add(new int[]{tokensList.get(ints[0]).getLine(), tokensList.get(ints[1]).getLine()});
         }
         return result;
-    }
-
-    public Start(String text1, String text2, String algorithm) throws IOException, NoSuchAlgorithmException {
-        String s1 = getTokens(text1);
-        String s2 = getTokens(text2);
-
-        winnowing = new Winnowing(s1, s2, algorithm);
-
-        ArrayList<Integer> positions1 = winnowing.getPositions1();
-        ArrayList<Integer> positions2 = winnowing.getPositions2();
-
-        if (positions1.size() > 0 && positions2.size() > 0) {
-            Collections.sort(positions1);
-            Collections.sort(positions2);
-
-            intervals1 = getSequences(positions1, Winnowing.getNgramLength());
-            intervals2 = getSequences(positions2, Winnowing.getNgramLength());
-
-            intervals1 = getLineIntervals(intervals1, tokensList1);
-            intervals2 = getLineIntervals(intervals2, tokensList2);
-        }
     }
 
     public ArrayList<int[]> getIntervals1() {

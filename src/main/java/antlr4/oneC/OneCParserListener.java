@@ -1,4 +1,4 @@
-package antlr4;// Generated from OneCParser.g4 by ANTLR 4.7.1
+package antlr4.oneC;// Generated from OneCParser.g4 by ANTLR 4.7.1
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**

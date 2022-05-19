@@ -7,10 +7,12 @@ import static algorithms.Algorithms.getFileExtension;
 
 public class FileWalker {
 
-    private ArrayList<String> listFiles;
+    private final ArrayList<String> listFilesBsl;
+    private final ArrayList<String> listFilesXml;
 
     public FileWalker(){
-        listFiles = new ArrayList<>();
+        listFilesBsl = new ArrayList<>();
+        listFilesXml = new ArrayList<>();
     }
 
     public void walk(String path) {
@@ -20,18 +22,25 @@ public class FileWalker {
         if (list == null) return;
 
         for ( File f : list ) {
-            if ( f.isDirectory() && !f.getName().equals("Results")) {
+            if (f.isDirectory()) {
                 walk( f.getAbsolutePath() );
             }
             else {
-                if (getFileExtension(f.getName()).equals("bsl")){
-                    listFiles.add(f.getAbsolutePath());
+                String extension = getFileExtension(f.getName());
+                if (extension.equals("bsl")){
+                    listFilesBsl.add(f.getAbsolutePath());
+                } else if (extension.equals("xml")) {
+                    listFilesXml.add(f.getAbsolutePath());
                 }
             }
         }
     }
 
-    public ArrayList<String> getListFiles() {
-        return listFiles;
+    public ArrayList<String> getListFilesBsl() {
+        return listFilesBsl;
+    }
+
+    public ArrayList<String> getListFilesXml() {
+        return listFilesXml;
     }
 }

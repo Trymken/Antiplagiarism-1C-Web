@@ -1,21 +1,6 @@
-.redflag {
-    color: crimson;
-}
-
 .main {
     height: 100%;
     width: 100%;
 }
 
-.block {
-    float: right;
-    margin: 1% 5% 1% 1%;
-    width: 42%;
-    height: 600px;
-    overflow-y: scroll;
-}
 
-.code {
-    float: left;
-    width: 100%;
-}
