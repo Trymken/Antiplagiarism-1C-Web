@@ -8,7 +8,7 @@
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
         <link rel="stylesheet" th:href="@{/css/index.css}">
-<!--        <script th:src="@{/js/drag.js}"></script>-->
+        <script th:src="@{/js/index.js}"></script>
     </head>
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -29,7 +29,7 @@
         </nav>
     </header>
     <body>
-        <form method="post" enctype="multipart/form-data" action="/">
+        <form method="post" enctype="multipart/form-data" action="/" th:object="${myform}">
             <div class="uploadInputs">
                 File1 (.zip, .rar):
                 <input type="file" name="file1"><br><br>
@@ -38,13 +38,73 @@
                 <input class="btn btn-primary" type="submit" value="Upload" /> Press here to upload <br><br>
 
                 <p>
-                    <a class="btn btn-outline-info" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+                    <a class="btn btn-outline-info" data-toggle="collapse" href="#collapseSettings" role="button" aria-expanded="false" aria-controls="collapseSettings">
                         Toggle settings
                     </a>
+                    <input class="btn btn-outline-info" id="saveSettings" type="button" value="Save settings">
                 </p>
-                <div class="collapse" id="collapseExample">
+                <div class="collapse" id="collapseSettings">
                     <div class="card card-body">
-                        Настройки тут.
+                        <p><b>Choose optional algorithms for similarity estimation</b></p>
+                        <div>
+                            <input type="checkbox" id="shingles" name="shingles" th:field="*{shingles}">
+                            <label for="shingles">Shingle algorithm</label>
+                            <input type="checkbox" id="levenshtein" name="levenshtein" th:field="*{levenshtein}">
+                            <label for="levenshtein">Levenshtein distance</label>
+
+                            <p>
+                                <a class="btn btn-outline-info" data-toggle="collapse" href="#collapseShingle" role="button" aria-expanded="false" aria-controls="collapseShingle">
+                                    Shingle settings
+                                </a>
+                            </p>
+                            <div class="collapse" id="collapseShingle">
+                                <div class="card card-body">
+                                    <div>
+                                        <input type="number" id="shingleLength" name="shingleLen" max="100" min="1" maxlength="2" pattern="\d+" required th:field="*{shingleLen}" value="10">
+                                        <label for="shingleLength">Length of shingle (1 - 100)</label>
+                                    </div>
+                                    <div>
+                                        <input type="checkbox" id="module" name="module" th:field="*{module}">
+                                        <label for="module">Use module?</label>
+                                    </div>
+                                    <div>
+                                        <input type="number" id="moduleVal" name="moduleVal" max="1000000" min="2" pattern="\d+" required th:field="*{moduleVal}" value="4">
+                                        <label for="shingleLength">Module (1 - 1000000)</label>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <p><b>Parameters of the main algorithm</b></p>
+                        <div>
+                            <input type="number" id="ngramLength" name="ngram" max="100" min="1" maxlength="2" pattern="\d+" required th:field="*{ngramLength}" value="17">
+                            <label for="ngramLength">Length of ngram (1 - 100)</label>
+                        </div>
+                        <div>
+                            <input type="number" id="windowLength" name="window" max="100" min="1" maxlength="2" pattern="\d+" required th:field="*{windowLength}" value="5">
+                            <label for="windowLength">Window size (1 - 100)</label>
+                        </div>
+                        <p><b>Sorting the resulting table</b></p>
+                        <div>
+                            <input type="radio" id="score" name="sorting" value="score">
+                            <label for="score">By score</label>
+                            <input type="radio" id="firstFile" name="sorting" value="firstFile">
+                            <label for="firstFile">By the name of the first file</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="index" name="sorting" checked value="index">
+                            <label for="index">By index</label>
+                            <input type="radio" id="secondFile" name="sorting" value="secondFile">
+                            <label for="secondFile">By the name of the second file</label>
+                        </div>
+                        <p><b>Sort order</b></p>
+                        <div>
+                            <input type="radio" id="asc" name="sortOrder" checked value="asc">
+                            <label for="asc">Ascending</label>
+                            <input type="radio" id="desc" name="sortOrder" value="desc">
+                            <label for="desc">Descending</label>
+                        </div>
                     </div>
                 </div>
             </div>

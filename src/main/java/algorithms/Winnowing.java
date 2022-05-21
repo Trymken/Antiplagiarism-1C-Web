@@ -28,7 +28,8 @@ public class Winnowing {
     }
 
 
-    public Winnowing(String s1, String s2, String algo) throws NoSuchAlgorithmException {
+    public Winnowing(String s1, String s2, String algo, int ngram, int window) throws NoSuchAlgorithmException {
+        setParams(ngram, window);
         this.init(s1, s2, algo);
     }
 
@@ -111,6 +112,11 @@ public class Winnowing {
         this.scoreMax = (min * 1. / Math.max(winnowing1.size(), winnowing2.size())) * 100;
         this.scoreLength = (min * 2. / (winnowing1.size() + winnowing2.size())) * 100;
         this.score = (this.scoreMin + this.scoreMax + this.scoreLength) / 3.;
+    }
+
+    private static void setParams(int ngram, int window){
+        ngramLength = ngram;
+        windowLength = window;
     }
 
     public ArrayList<Integer> getPositions1() {

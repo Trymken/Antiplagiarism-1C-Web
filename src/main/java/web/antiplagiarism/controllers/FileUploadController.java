@@ -2,13 +2,15 @@ package web.antiplagiarism.controllers;
 
 
 import algorithms.FileWalker;
-import algorithms.RowComparator;
+import algorithms.comparators.*;
 import algorithms.UnZip;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.WebUtils;
+import struct.Form;
 import struct.Row;
 import web.antiplagiarism.exceptions.CookieException;
 import web.antiplagiarism.exceptions.InvalidFileExtensionException;
@@ -23,10 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import static algorithms.Algorithms.*;
 
@@ -38,16 +37,19 @@ public class FileUploadController {
 
     @RequestMapping("/")
     public String uploadPage(Model model){
+        model.addAttribute("myform", new Form());
         return "index";
     }
 
     @PostMapping("/")
     public String handleFileUpload(@RequestParam("file1") MultipartFile file1,
                                    @RequestParam("file2") MultipartFile file2,
+                                   @RequestParam("sorting") String sorting,
+                                   @RequestParam("sortOrder") String sortOrder,
+                                   @ModelAttribute Form myform,
+                                   RedirectAttributes redirectAttributes,
                                    HttpServletResponse response)
             throws IOException, NoSuchAlgorithmException, InvalidFileExtensionException {
-
-        Cookie cookie = new Cookie("uuid", UUID.randomUUID().toString());
 
         if (file1 != null && file2 != null) {
             String extension1 = getFileExtension(file1.getOriginalFilename());
@@ -61,6 +63,7 @@ public class FileUploadController {
                     "Invalid file extension, please upload a file with the extension .zip, .rar");
         }
 
+        Cookie cookie = new Cookie("uuid", UUID.randomUUID().toString());
         String uuid = cookie.getValue();
 
         File uploadDir = new File(uploadDirectory + '\\' + uuid);
@@ -96,10 +99,16 @@ public class FileUploadController {
         fw1.walk(uploadLocalDir + '\\' + '1');
         fw2.walk(uploadLocalDir + '\\' + '2');
 
-        cartesianProduct(fw1.getListFilesBsl(), fw2.getListFilesBsl(), uploadLocalDir, false);
-        cartesianProduct(fw1.getListFilesXml(), fw2.getListFilesXml(), uploadLocalDir, true);
+        cartesianProduct(fw1.getListFilesBsl(), fw2.getListFilesBsl(), uploadLocalDir, false, myform);
+        cartesianProduct(fw1.getListFilesXml(), fw2.getListFilesXml(), uploadLocalDir, true, myform);
 
         response.addCookie(cookie);
+
+        Cookie sort = new Cookie("sort", sorting);
+        Cookie orderBy = new Cookie("orderBy", sortOrder);
+
+        response.addCookie(sort);
+        response.addCookie(orderBy);
 
         return "redirect:/files";
     }
@@ -107,9 +116,11 @@ public class FileUploadController {
 
     @RequestMapping("/files")
     public String showFiles(Model model, HttpServletRequest request) throws IOException, CookieException {
-        String uuid;
+        String uuid, sorting, sortOrder;
         try {
             uuid = Objects.requireNonNull(WebUtils.getCookie(request, "uuid")).getValue();
+            sorting = Objects.requireNonNull(WebUtils.getCookie(request, "sort")).getValue();
+            sortOrder = Objects.requireNonNull(WebUtils.getCookie(request, "orderBy")).getValue();
         }
         catch (NullPointerException e){
             throw new CookieException("Cookie not found. Please reupload your files again.");
@@ -130,7 +141,14 @@ public class FileUploadController {
             }
         }
 
-        rows.sort(new RowComparator());
+        //TODO подумать над другой реализацией
+        switch (sorting) {
+            case "score" : if (sortOrder.equals("desc")) rows.sort(new ScoreComparatorDESC()); else rows.sort(new ScoreComparatorASC()); break;
+            case "index" : if (sortOrder.equals("desc")) rows.sort(new IndexComparatorDESC()); else rows.sort(new IndexComparatorASC()); break;
+            case "firstFile" : if (sortOrder.equals("desc")) rows.sort(new FirstFileComparatorDESC()); else rows.sort(new FirstFileComparatorASC()); break;
+            case "secondFile" : if (sortOrder.equals("desc")) rows.sort(new SecondFileComparatorDESC()); else rows.sort(new SecondFileComparatorASC()); break;
+        }
+
         model.addAttribute("rows", rows);
         return "uploads";
     }
@@ -158,7 +176,7 @@ public class FileUploadController {
         String file2 = Files.readString(Path.of(uploadLocalDir + '\\' + "Results" +
                 '\\' + paths.get(2) + '\\' + "2.txt"));
 
-        String score = Files.readString(Path.of(uploadLocalDir + '\\' + "Results" +
+        List<String> score = Files.readAllLines(Path.of(uploadLocalDir + '\\' + "Results" +
                 '\\' + paths.get(2) + '\\' + "score.txt"));
 
         model.addAttribute("dir1", paths.get(0));

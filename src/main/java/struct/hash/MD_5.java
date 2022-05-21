@@ -1,4 +1,4 @@
-package struct;
+package struct.hash;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

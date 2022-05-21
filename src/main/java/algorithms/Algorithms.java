@@ -1,25 +1,29 @@
 package algorithms;
 
 
-import struct.Hash;
+import struct.Form;
+import struct.hash.Hash;
 import struct.Row;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+import static algorithms.LevenshteinDistance.levenshteinScore;
+
 
 public class Algorithms {
 
-    public static boolean contains(byte[] b, byte[][] bytes){
+    public static boolean contains(byte[] b, ArrayList<byte[]> bytes){
         boolean flag;
-        for (int i = 0; i < bytes.length; i++){
+        for (int i = 0; i < bytes.size(); i++){
             flag = true;
-            for (int j = 0; j < bytes[0].length; j++) {
-                if (b[j] != bytes[i][j]) {
+            for (int j = 0; j < bytes.get(0).length; j++) {
+                if (b[j] != bytes.get(i)[j]) {
                     flag = false;
                     break;
                 }
@@ -30,37 +34,36 @@ public class Algorithms {
     }
 
 
-    public static byte[][] generateHash(String s, String algorithm, int MODULE, boolean USE_MODULE, int shingleLength)
+    public static ArrayList<byte[]> generateHash(String s, String algorithm, int MODULE, boolean USE_MODULE, int shingleLength)
             throws NoSuchAlgorithmException {
         return generateHash(s, Hash.getHashAlgo(algorithm), MODULE, USE_MODULE, shingleLength);
     }
 
 
-    private static byte[][] generateHash(String s, Hash sequence, int MODULE, boolean USE_MODULE, int shingleLength)
+    private static ArrayList<byte[]> generateHash(String s, Hash sequence, int MODULE, boolean USE_MODULE, int shingleLength)
             throws NoSuchAlgorithmException {
-        byte[][] arrayList = new byte[s.length() - shingleLength + 1][];
+        ArrayList<byte[]> arrayList = new ArrayList<>();
+        int length = s.length() - shingleLength + 1;
 
-        for (int i = 0; i < arrayList.length; i++) {
+        for (int i = 0; i < length; i++) {
             String temp = s.substring(i, i + shingleLength);
             sequence.encode(temp);
 
             if (USE_MODULE) {
-                if (bytesToLong(sequence.getBytes()) % MODULE == 0)
-                    arrayList[i] = sequence.getBytes();
+                if (bytesToLongModule(sequence.getBytes(), MODULE))
+                    arrayList.add(sequence.getBytes());
             } else {
-                arrayList[i] = sequence.getBytes();
+                arrayList.add(sequence.getBytes());
             }
         }
         return arrayList;
     }
 
 
-    public static long bytesToLong(byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.put(bytes);
-        buffer.flip();
-        buffer.reset();
-        return buffer.getLong();
+    public static boolean bytesToLongModule(byte[] bytes, int MODULE) {
+        BigInteger b = new BigInteger(bytes);
+        b = b.mod(BigInteger.valueOf(MODULE));
+        return b.equals(BigInteger.valueOf(0));
     }
 
 
@@ -126,14 +129,17 @@ public class Algorithms {
 
     public static void cartesianProduct(ArrayList<String> filesPath1,
                                         ArrayList<String> filesPath2,
-                                        String uploadDir, boolean isXML) throws IOException, NoSuchAlgorithmException {
+                                        String uploadDir,
+                                        boolean isXML,
+                                        Form form) throws IOException, NoSuchAlgorithmException {
         Start start;
         for (int i = 0; i < filesPath1.size(); i++) {
             File file1 = new File(filesPath1.get(i));
             for (int j = 0; j < filesPath2.size(); j++) {
                 File file2 = new File(filesPath2.get(j));
 
-                start = new Start(file1.getAbsolutePath(), file2.getAbsolutePath(), "sha-1", isXML);
+                start = new Start(file1.getAbsolutePath(), file2.getAbsolutePath(), "sha-1", isXML,
+                        form.getNgramLength(), form.getWindowLength());
 
                 String filenames = file1.getName() + '\n' +
                         file2.getName() + '\n' +
@@ -170,12 +176,23 @@ public class Algorithms {
                     resultPath += '\\' + file1.getName() + '_' + file2.getName() + '_' + i + '_' + j;
                     new File(resultPath).mkdir();
 
+                    String score = String.valueOf(start.getWinnowing().getScore()) + '\n';
+                    if(form.isLevenshtein()){
+                        double levenScore = levenshteinScore(start.getS1(), start.getS2());
+                        score += "Levenshtein distance: " + levenScore + '\n';
+                    }
+
+                    if(form.isShingles()){
+                        double shingleScore = new Shingle(start.getS1(), start.getS2(), "sha-1",
+                                form.getShingleLen(),form.getModuleVal(), form.isModule()).getScore();
+                        score += "Shingle algorithm: " + shingleScore + '\n';
+                    }
+
 
                     Files.write(Path.of(resultPath + '\\' + "filenames.txt"), filenames.getBytes());
                     Files.write(Path.of(resultPath + '\\' + "1.txt"), result1.getBytes());
                     Files.write(Path.of(resultPath + '\\' + "2.txt"), result2.getBytes());
-                    Files.write(Path.of(resultPath + '\\' + "score.txt"),
-                            String.valueOf(start.getWinnowing().getScore()).getBytes());
+                    Files.write(Path.of(resultPath + '\\' + "score.txt"),score.getBytes());
 
                 } else {
                     String resultPath = uploadDir + '\\' + "Results";
@@ -187,11 +204,24 @@ public class Algorithms {
                     String content1 = Files.readString(Path.of(file1.getAbsolutePath()));
                     String content2 = Files.readString(Path.of(file2.getAbsolutePath()));
 
+                    //TODO разобраться с этим ужасом!
+
+                    String score = String.valueOf(start.getWinnowing().getScore()) + '\n';
+                    if(form.isLevenshtein()){
+                        double levenScore = levenshteinScore(start.getS1(), start.getS2());
+                        score += "Levenshtein distance: " + levenScore + '\n';
+                    }
+
+                    if(form.isShingles()){
+                        double shingleScore = new Shingle(start.getS1(), start.getS2(), "sha-1",
+                                form.getShingleLen(),form.getModuleVal(), form.isModule()).getScore();
+                        score += "Shingle algorithm: " + shingleScore + '\n';
+                    }
+
                     Files.write(Path.of(resultPath + '\\' + "filenames.txt"), filenames.getBytes());
                     Files.write(Path.of(resultPath + '\\' + "1.txt"), content1.getBytes());
                     Files.write(Path.of(resultPath + '\\' + "2.txt"), content2.getBytes());
-                    Files.write(Path.of(resultPath + '\\' + "score.txt"),
-                            String.valueOf(start.getWinnowing().getScore()).getBytes());
+                    Files.write(Path.of(resultPath + '\\' + "score.txt"), score.getBytes());
                 }
             }
         }
@@ -199,7 +229,7 @@ public class Algorithms {
 
 
    public static Row getTableRow(String path, String dir, int counter) throws IOException {
-        String score = Files.readString(Path.of(path + '\\' + "Results" + '\\' + dir + '\\' + "score.txt"));
+        List<String> score = Files.readAllLines(Path.of(path + '\\' + "Results" + '\\' + dir + '\\' + "score.txt"));
         List<String> filenames =
                 Files.readAllLines(Path.of(path + '\\' + "Results" + '\\' + dir + '\\' + "filenames.txt"));
         return new Row(filenames.get(0), filenames.get(1), score, counter);

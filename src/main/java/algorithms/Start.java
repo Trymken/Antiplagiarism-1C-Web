@@ -22,12 +22,15 @@ public class Start {
 
     private CommonTokenStream tokensList1 = null;
     private CommonTokenStream tokensList2 = null;
+    private final String s1;
+    private final String s2;
     private ArrayList<int[]> intervals1, intervals2;
     private final Winnowing winnowing;
 
 
-    public Start(String text1, String text2, String algorithm, boolean isXML) throws IOException, NoSuchAlgorithmException {
-        String s1, s2;
+    public Start(String text1, String text2, String algorithm, boolean isXML, int ngram, int window)
+            throws IOException, NoSuchAlgorithmException {
+
         if(!isXML) {
             s1 = getTokens(text1);
             s2 = getTokens(text2);
@@ -35,7 +38,7 @@ public class Start {
             s1 = getXMLTokens(text1);
             s2 = getXMLTokens(text2);
         }
-        winnowing = new Winnowing(s1, s2, algorithm);
+        winnowing = new Winnowing(s1, s2, algorithm, ngram, window);
 
         ArrayList<Integer> positions1 = winnowing.getPositions1();
         ArrayList<Integer> positions2 = winnowing.getPositions2();
@@ -150,4 +153,11 @@ public class Start {
         return winnowing;
     }
 
+    public String getS1() {
+        return s1;
+    }
+
+    public String getS2() {
+        return s2;
+    }
 }

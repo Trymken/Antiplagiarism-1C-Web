@@ -45,7 +45,7 @@
                     <th scope="row" th:text="${row.getIndex()}"></th>
                     <td th:text="${row.getPath1()}"></td>
                     <td th:text="${row.getPath2()}"></td>
-                    <td th:text="${row.getScore()}"></td>
+                    <td th:text="${row.getScore().get(0)}"></td>
                     <td>
                         <a th:href="@{/files/{id}(id=${row.getIndex()})}">View</a>
                     </td>

@@ -1,5 +1,5 @@
 
-package struct;
+package struct.hash;
 
 import java.security.NoSuchAlgorithmException;
 

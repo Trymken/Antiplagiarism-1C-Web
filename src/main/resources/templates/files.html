@@ -46,7 +46,9 @@
             </div>
 
             <div class="center-div">
-                <h2 th:text="${score}"></h2>
+                <div th:each="sc : ${score}">
+                    <h2 th:text="${sc}"></h2>
+                </div>
             </div>
 
         </div>

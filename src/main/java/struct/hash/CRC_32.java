@@ -1,4 +1,4 @@
-package struct;
+package struct.hash;
 
 
 import java.util.Arrays;
