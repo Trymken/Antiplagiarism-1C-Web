@@ -3,7 +3,7 @@ package algorithms;
 import java.io.File;
 import java.util.ArrayList;
 
-import static algorithms.Algorithms.getFileExtension;
+import static algorithms.UsefulMethods.getFileExtension;
 
 public class FileWalker {
 

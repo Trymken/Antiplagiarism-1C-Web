@@ -31,10 +31,10 @@
     <body>
         <form method="post" enctype="multipart/form-data" action="/" th:object="${myform}">
             <div class="uploadInputs">
-                File1 (.zip, .rar):
-                <input type="file" name="file1"><br><br>
-                File2 (.zip, .rar):
-                <input type="file" name="file2"><br><br>
+                Files (.zip, .rar):
+                <input type="file" name="file1" multiple><br><br>
+<!--                File2 (.zip, .rar):-->
+<!--                <input type="file" name="file2"><br><br>-->
                 <input class="btn btn-primary" type="submit" value="Upload" /> Press here to upload <br><br>
 
                 <p>
@@ -45,13 +45,18 @@
                 </p>
                 <div class="collapse" id="collapseSettings">
                     <div class="card card-body">
+                        <div>
+                            <input type="checkbox" id="checkXml" name="checkXml" th:field="*{checkXml}">
+                            <label for="checkXml">Checking Xml</label>
+                            <input type="checkbox" id="showZeroScore" name="showZeroScore" th:field="*{showZeroScore}">
+                            <label for="showZeroScore">Show files with a score of 0</label>
+                        </div>
                         <p><b>Choose optional algorithms for similarity estimation</b></p>
                         <div>
                             <input type="checkbox" id="shingles" name="shingles" th:field="*{shingles}">
                             <label for="shingles">Shingle algorithm</label>
                             <input type="checkbox" id="levenshtein" name="levenshtein" th:field="*{levenshtein}">
                             <label for="levenshtein">Levenshtein distance</label>
-
                             <p>
                                 <a class="btn btn-outline-info" data-toggle="collapse" href="#collapseShingle" role="button" aria-expanded="false" aria-controls="collapseShingle">
                                     Shingle settings
@@ -73,9 +78,8 @@
                                     </div>
                                 </div>
                             </div>
-
-
                         </div>
+
                         <p><b>Parameters of the main algorithm</b></p>
                         <div>
                             <input type="number" id="ngramLength" name="ngram" max="100" min="1" maxlength="2" pattern="\d+" required th:field="*{ngramLength}" value="17">

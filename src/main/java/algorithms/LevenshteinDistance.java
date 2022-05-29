@@ -57,12 +57,13 @@ public class LevenshteinDistance {
         return levenshteinDistance(s1, s2, replCost, delCost, 1);
     }
 
+
     public static double levenshteinScore(String s1, String s2){
         int a = levenshteinDistance(s1, s2);
         return (1 - (a * 1.0 / Math.max(s1.length(), s2.length()))) * 100;
     }
 
     public static void main(String[] args) {
-        System.out.println(levenshteinDistance("hero", "help"));
+        System.out.println(levenshteinDistance("Счастье", "Солнце"));
     }
 }

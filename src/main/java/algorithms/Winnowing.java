@@ -5,8 +5,8 @@ import struct.Ngram;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
-import static algorithms.Algorithms.greaterOrEquals;
-import static algorithms.Algorithms.hashing;
+import static algorithms.UsefulMethods.greaterOrEquals;
+import static algorithms.UsefulMethods.hashing;
 
 
 public class Winnowing {

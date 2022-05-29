@@ -4,7 +4,7 @@ package struct.hash;
 import java.util.Arrays;
 import java.util.zip.CRC32;
 
-import static algorithms.Algorithms.longToBytes;
+import static algorithms.UsefulMethods.longToBytes;
 
 public class CRC_32 implements Hash {
     private byte[] bytes;

@@ -9,6 +9,8 @@ public class Form {
     private int moduleVal;
     private int ngramLength;
     private int windowLength;
+    private boolean checkXml = false;
+    private boolean showZeroScore = false;
 
     public boolean isShingles() {
         return shingles;
@@ -66,6 +68,22 @@ public class Form {
         this.windowLength = windowLength;
     }
 
+    public boolean isCheckXml() {
+        return checkXml;
+    }
+
+    public void setCheckXml(boolean checkXml) {
+        this.checkXml = checkXml;
+    }
+
+    public boolean isShowZeroScore() {
+        return showZeroScore;
+    }
+
+    public void setShowZeroScore(boolean showZeroScore) {
+        this.showZeroScore = showZeroScore;
+    }
+
     @Override
     public String toString() {
         return "Form{" +
@@ -76,6 +94,8 @@ public class Form {
                 ", moduleVal=" + moduleVal +
                 ", ngramLength=" + ngramLength +
                 ", windowLength=" + windowLength +
+                ", checkXml=" + checkXml +
+                ", showZeroScore=" + showZeroScore +
                 '}';
     }
 }

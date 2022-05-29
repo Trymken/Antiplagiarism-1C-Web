@@ -9,7 +9,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
     let isLevenshtein = localStorage.getItem("isLevenshtein");
     let sort = localStorage.getItem("sort");
     let sortOrder = localStorage.getItem("sortOrder");
-
+    let checkXml = localStorage.getItem("checkXml");
+    let showZeroScore = localStorage.getItem("showZeroScore")
 
     if (shingleLength === null){
         document.getElementById("shingleLength").value = 10;
@@ -26,6 +27,16 @@ document.addEventListener("DOMContentLoaded", function(event) {
     if (isModule !== null){
         isModule = (isModule === 'true');
         document.getElementById("module").checked = isModule;
+    }
+
+    if (checkXml !== null){
+        checkXml = (checkXml === 'true');
+        document.getElementById("checkXml").checked = checkXml;
+    }
+
+    if (showZeroScore !== null){
+        showZeroScore = (showZeroScore === 'true');
+        document.getElementById("showZeroScore").checked = showZeroScore;
     }
 
     if (ngramLength === null){
@@ -68,6 +79,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
         let isLevenshtein = document.getElementById("levenshtein").checked;
         let sort = document.getElementsByName("sorting");
         let sortOrder = document.getElementsByName("sortOrder");
+        let checkXml = document.getElementById("checkXml").checked;
+        let showZeroScore = document.getElementById("showZeroScore").checked;
 
         localStorage.setItem("shingleLength", shingleLength);
         localStorage.setItem("moduleVal", moduleVal);
@@ -76,6 +89,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
         localStorage.setItem("windowLength", windowLength);
         localStorage.setItem("isShingles", isShingles);
         localStorage.setItem("isLevenshtein", isLevenshtein);
+        localStorage.setItem("checkXml", checkXml);
+        localStorage.setItem("showZeroScore", showZeroScore);
 
         let idSort;
         for (let i = 0; i < sort.length; i++) {

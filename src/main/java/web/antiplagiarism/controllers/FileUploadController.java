@@ -3,13 +3,12 @@ package web.antiplagiarism.controllers;
 
 import algorithms.FileWalker;
 import algorithms.comparators.*;
-import algorithms.UnZip;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.WebUtils;
+import org.xml.sax.SAXException;
 import struct.Form;
 import struct.Row;
 import web.antiplagiarism.exceptions.CookieException;
@@ -19,15 +18,17 @@ import web.antiplagiarism.exceptions.InvalidFileExtensionException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static algorithms.Algorithms.*;
+import static algorithms.UsefulMethods.*;
 
 @Controller
 public class FileUploadController {
@@ -42,65 +43,59 @@ public class FileUploadController {
     }
 
     @PostMapping("/")
-    public String handleFileUpload(@RequestParam("file1") MultipartFile file1,
-                                   @RequestParam("file2") MultipartFile file2,
+    public String handleFileUpload(@RequestParam("file1") MultipartFile[] file1,
                                    @RequestParam("sorting") String sorting,
                                    @RequestParam("sortOrder") String sortOrder,
-                                   @ModelAttribute Form myform,
-                                   RedirectAttributes redirectAttributes,
+                                   @ModelAttribute Form form,
                                    HttpServletResponse response)
-            throws IOException, NoSuchAlgorithmException, InvalidFileExtensionException {
+            throws IOException, NoSuchAlgorithmException, InvalidFileExtensionException,
+            ParserConfigurationException, SAXException {
 
-        if (file1 != null && file2 != null) {
-            String extension1 = getFileExtension(file1.getOriginalFilename());
-            String extension2 = getFileExtension(file2.getOriginalFilename());
-            if (extensions.contains(extension1) && extensions.contains(extension2)){
-                File uploadDir = new File(uploadDirectory);
-                if (!uploadDir.exists()) {
-                    uploadDir.mkdir();
-                }
-            } else throw new InvalidFileExtensionException(
-                    "Invalid file extension, please upload a file with the extension .zip, .rar");
+        if(file1.length <= 1){
+            throw new FileNotFoundException(
+                    "The number of files must be greater than or equal to 2, please upload files again");
         }
+
+        if (isValidExtension(file1, extensions)){
+            File uploadDir = new File(uploadDirectory);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdir();
+            }
+        } else throw new InvalidFileExtensionException(
+                "Invalid file extension, please upload a file with the extension .zip, .rar");
 
         Cookie cookie = new Cookie("uuid", UUID.randomUUID().toString());
         String uuid = cookie.getValue();
+        String uploadLocalDir = uploadDirectory + '\\' + uuid;
 
-        File uploadDir = new File(uploadDirectory + '\\' + uuid);
-        File dir1 = new File(uploadDirectory + '\\' + uuid + '\\' + '1');
-        File dir2 = new File(uploadDirectory + '\\' + uuid + '\\' + '2');
-
+        File uploadDir = new File(uploadLocalDir);
         if(!uploadDir.exists()){
             uploadDir.mkdir();
         }
 
-        if (!dir1.exists()){
-            dir1.mkdir();
+        createDirectories(file1.length, uploadLocalDir);
+        unzipMultipartFiles(file1, uploadLocalDir);
+
+        for (int i = 0; i < file1.length; i++) {
+            FileWalker fw1 = new FileWalker();
+            fw1.walk(uploadLocalDir + '\\' + i);
+            for (int j = i + 1; j < file1.length; j++) {
+                FileWalker fw2 = new FileWalker();
+                fw2.walk(uploadLocalDir + '\\' + String.format("%d", j));
+                String archivenames = String.format("%s\n%s", file1[i].getOriginalFilename(), file1[j].getOriginalFilename());
+                cartesianProduct(fw1.getListFilesBsl(), fw2.getListFilesBsl(), uploadLocalDir, form, i, j);
+                if(form.isCheckXml())
+                    cartesianProductXml(fw1.getListFilesXml(), fw2.getListFilesXml(), uploadLocalDir, form, i, j);
+                String dir = uploadLocalDir + '\\' + "Results" + '\\' + i + '_' + j + '\\' + "archivenames.txt";
+                try {
+                    Files.write(Path.of(dir), archivenames.getBytes());
+                } catch (NoSuchFileException e) {
+                    new File(uploadLocalDir + '\\' + "Results").mkdir();
+                    new File(uploadLocalDir + '\\' + "Results" + '\\' + i + '_' + j).mkdir();
+                    Files.write(Path.of(dir), archivenames.getBytes());
+                }
+            }
         }
-
-        if (!dir2.exists()){
-            dir2.mkdir();
-        }
-
-        UnZip unZip = new UnZip();
-
-        String filename = file1.getOriginalFilename();
-        Path path = Paths.get(dir1.getAbsolutePath(), filename);
-        unZip.unZipFile(file1.getInputStream(), path.toString());
-
-        filename = file2.getOriginalFilename();
-        path = Paths.get(dir2.getAbsolutePath(), filename);
-        unZip.unZipFile(file2.getInputStream(), path.toString());
-
-        String uploadLocalDir = uploadDirectory + '\\' + uuid;
-
-        FileWalker fw1 = new FileWalker();
-        FileWalker fw2 = new FileWalker();
-        fw1.walk(uploadLocalDir + '\\' + '1');
-        fw2.walk(uploadLocalDir + '\\' + '2');
-
-        cartesianProduct(fw1.getListFilesBsl(), fw2.getListFilesBsl(), uploadLocalDir, false, myform);
-        cartesianProduct(fw1.getListFilesXml(), fw2.getListFilesXml(), uploadLocalDir, true, myform);
 
         response.addCookie(cookie);
 
@@ -116,32 +111,50 @@ public class FileUploadController {
 
     @RequestMapping("/files")
     public String showFiles(Model model, HttpServletRequest request) throws IOException, CookieException {
-        String uuid, sorting, sortOrder;
+        String uuid;
         try {
             uuid = Objects.requireNonNull(WebUtils.getCookie(request, "uuid")).getValue();
-            sorting = Objects.requireNonNull(WebUtils.getCookie(request, "sort")).getValue();
-            sortOrder = Objects.requireNonNull(WebUtils.getCookie(request, "orderBy")).getValue();
         }
         catch (NullPointerException e){
             throw new CookieException("Cookie not found. Please reupload your files again.");
         }
 
-        String uploadLocalDir = uploadDirectory + '\\' + uuid;
+        String uploadLocalDir = uploadDirectory + '\\' + uuid + '\\' + "Results";
 
-        File root = new File(uploadLocalDir + '\\' + "Results");
+        File root = new File(uploadLocalDir);
         File[] list = root.listFiles();
-        ArrayList<Row> rows = new ArrayList<>();
-        if (list == null) return "uploads";
-        int counter = 1;
+        if (list == null) return "table";
+        ArrayList<Row> rows = getTableRows(list, uploadLocalDir, true);
 
-        for ( File f : list ) {
-            if ( f.isDirectory()) {
-               rows.add(getTableRow(uploadLocalDir, f.getName(), counter));
-               counter++;
-            }
+
+        model.addAttribute("rows", rows);
+        return "table";
+    }
+
+    @RequestMapping("/files/{id}")
+    public String getTable(Model model, @PathVariable(value = "id") Integer id, HttpServletRequest request)
+            throws CookieException, IOException {
+
+        String uuid, sorting, sortOrder;
+        try {
+            sorting = Objects.requireNonNull(WebUtils.getCookie(request, "sort")).getValue();
+            sortOrder = Objects.requireNonNull(WebUtils.getCookie(request, "orderBy")).getValue();
+            uuid = Objects.requireNonNull(WebUtils.getCookie(request, "uuid")).getValue();
+        }
+        catch (NullPointerException e){
+            throw new CookieException("Cookie not found. Please reupload your files again.");
         }
 
-        //TODO подумать над другой реализацией
+        String uploadLocalDir = uploadDirectory + '\\' + uuid + '\\' + "Results";
+
+        String path = getDirNameByID(uploadLocalDir, id);
+        uploadLocalDir = uploadLocalDir + '\\' + path;
+
+        File root = new File(uploadLocalDir);
+        File[] list = root.listFiles();
+        if (list == null) return "uploads";
+        ArrayList<Row> rows = getTableRows(list, uploadLocalDir, false);
+
         switch (sorting) {
             case "score" : if (sortOrder.equals("desc")) rows.sort(new ScoreComparatorDESC()); else rows.sort(new ScoreComparatorASC()); break;
             case "index" : if (sortOrder.equals("desc")) rows.sort(new IndexComparatorDESC()); else rows.sort(new IndexComparatorASC()); break;
@@ -150,12 +163,15 @@ public class FileUploadController {
         }
 
         model.addAttribute("rows", rows);
+        model.addAttribute("tableId", id);
+
         return "uploads";
     }
 
-
-    @RequestMapping("/files/{id}")
-    public String getResult(Model model, @PathVariable(value="id") Integer id, HttpServletRequest request)
+    @RequestMapping("/files/{archiveid}/{id}")
+    public String getResult(Model model,
+                            @PathVariable(value="archiveid") Integer arcId,
+                            @PathVariable(value="id") Integer id, HttpServletRequest request)
             throws IOException, CookieException {
 
         String uuid;
@@ -166,21 +182,26 @@ public class FileUploadController {
             throw new CookieException("Cookie not found. Please reupload your files again.");
         }
 
-        String uploadLocalDir = uploadDirectory + '\\' + uuid;
-        ArrayList<String> paths = getFilesPath(uploadLocalDir, uuid, id);
-        if (paths.isEmpty()) return "files";
+        String uploadLocalDir = uploadDirectory + '\\' + uuid + '\\' + "Results";
+        String path = getDirNameByID(uploadLocalDir, arcId);
+        uploadLocalDir = uploadLocalDir + '\\' + path;
+        path = getDirNameByID(uploadLocalDir, id);
+        uploadLocalDir = uploadLocalDir + '\\' + path;
 
-        String file1 = Files.readString(Path.of(uploadLocalDir + '\\' + "Results" +
-                '\\' + paths.get(2) + '\\' + "1.txt"));
+        String file1 = Files.readString(Path.of(uploadLocalDir +'\\' + "1.txt"));
+        String file2 = Files.readString(Path.of(uploadLocalDir + '\\' + "2.txt"));
+        List<String> score = Files.readAllLines(Path.of(uploadLocalDir + '\\' + "score.txt"));
+        List<String> filePaths = Files.readAllLines(Path.of(uploadLocalDir + '\\' + "filenames.txt"));
 
-        String file2 = Files.readString(Path.of(uploadLocalDir + '\\' + "Results" +
-                '\\' + paths.get(2) + '\\' + "2.txt"));
+        String dir = filePaths.get(2).split(uuid)[1].substring(1);
+        dir = dir.substring(dir.indexOf('\\') + 1);
+        filePaths.set(2, dir);
+        dir = filePaths.get(3).split(uuid)[1].substring(1);
+        dir = dir.substring(dir.indexOf('\\') + 1);
+        filePaths.set(3, dir);
 
-        List<String> score = Files.readAllLines(Path.of(uploadLocalDir + '\\' + "Results" +
-                '\\' + paths.get(2) + '\\' + "score.txt"));
-
-        model.addAttribute("dir1", paths.get(0));
-        model.addAttribute("dir2", paths.get(1));
+        model.addAttribute("dir1", filePaths.get(2));
+        model.addAttribute("dir2", filePaths.get(3));
         model.addAttribute("content1", file1);
         model.addAttribute("content2", file2);
         model.addAttribute("score", score);

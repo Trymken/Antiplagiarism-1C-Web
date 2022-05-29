@@ -3,10 +3,9 @@ package algorithms;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
-import static algorithms.Algorithms.contains;
-import static algorithms.Algorithms.generateHash;
+import static algorithms.UsefulMethods.contains;
+import static algorithms.UsefulMethods.generateHash;
 
 public class Shingle {
 
