@@ -48,7 +48,6 @@ public class Shingle {
             }
         }
 
-        //TODO подумать о другой реализации вычисления оценки схожести файлов
         this.score = (count * 1. / Math.max(l1.size(), l2.size())) * 100;
     }
 
