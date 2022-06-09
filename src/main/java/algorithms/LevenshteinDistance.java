@@ -8,8 +8,8 @@ public class LevenshteinDistance {
         if(s1.length() == 0 && s2.length() == 0){
             return 0;
         } else if (s1.length() > 0 && s2.length() == 0){
-            return  s1.length();
-        } else if (s2.length() > 0 && s1.length() == 0){
+            return s1.length();
+        } else if (s1.length() == 0){
             return s2.length();
         }
 
