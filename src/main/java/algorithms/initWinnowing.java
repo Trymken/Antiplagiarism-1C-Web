@@ -9,10 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static algorithms.Tokenizer.setTokens;
 
@@ -106,7 +103,7 @@ public class initWinnowing {
                 }
             }
         }
-        result.add(new int[]{start, end});
+        result.add(new int[]{start, end - 1});
         return result;
     }
 

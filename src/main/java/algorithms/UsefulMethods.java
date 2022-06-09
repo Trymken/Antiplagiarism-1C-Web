@@ -7,6 +7,7 @@ import org.xml.sax.SAXException;
 import struct.Form;
 import struct.hash.Hash;
 import struct.Row;
+import struct.hash.SHA_1;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
@@ -90,21 +91,17 @@ public class UsefulMethods {
     }
 
     public static boolean lessOrEquals(byte[] b1, byte[] b2){
-        for (int i = 0; i < b1.length; i++) {
-            if (b1[i] > b2[i]){
-                return false;
-            }
-        }
-        return true;
+        BigInteger x1 = new BigInteger(b1);
+        BigInteger x2 = new BigInteger(b2);
+        int cmpr = x1.compareTo(x2);
+        return cmpr == 0 || cmpr == -1;
     }
 
     public static boolean greaterOrEquals(byte[] b1, byte[] b2){
-        for (int i = 0; i < b1.length; i++) {
-            if (b1[i] < b2[i]){
-                return false;
-            }
-        }
-        return true;
+        BigInteger x1 = new BigInteger(b1);
+        BigInteger x2 = new BigInteger(b2);
+        int cmpr = x1.compareTo(x2);
+        return cmpr == 0 || cmpr == 1;
     }
 
     public static String highlightText(List<String> strings, ArrayList<int[]> list){
@@ -112,7 +109,10 @@ public class UsefulMethods {
 
         for (int[] a : list) {
             strings.set(a[0] - 1, "<span class=\"redflag\">" + strings.get(a[0] - 1));
-            strings.set(a[1] - 1, strings.get(a[1] - 1) + "</span>");
+            if (a[1] - 1 < strings.size())
+                strings.set(a[1] - 1, strings.get(a[1] - 1) + "</span>");
+            else
+                strings.set(a[1] - 2, strings.get(a[1] - 2) + "</span>");
         }
 
         for (String s: strings) {
@@ -388,4 +388,5 @@ public class UsefulMethods {
         if (temp.length() < index + i + 1) return temp;
         return temp.substring(0, index + i + 1);
     }
+
 }
