@@ -62,7 +62,7 @@ public class Winnowing {
         byte[] hash = new byte[0];
 
         for (int i = 0; i < l1.size() - windowLength + 1; i++) {
-            int counter = 0;
+            int posInNgram = 0;
             if(i == 0){
                 for (int j = 0; j < windowLength; j++) {
                     if(j == 0){
@@ -80,12 +80,12 @@ public class Winnowing {
             for (int j = i; j < windowLength + i; j++) {
                 if (j == i){
                     hash = l1.get(j);
-                    position = i + counter;
+                    position = i + posInNgram;
                 } else if(greaterOrEquals(hash, l1.get(j))){
                     hash = l1.get(j);
-                    position = i + counter;
+                    position = i + posInNgram;
                 }
-                counter++;
+                posInNgram++;
             }
             if(position != result.get(result.size() - 1).getPosition()){
                 result.add(new Ngram(hash, position, ngramLength));
