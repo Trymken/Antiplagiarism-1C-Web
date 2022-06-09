@@ -1,6 +1,7 @@
 package algorithms;
 
 
+import algorithms.comparators.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.SAXException;
 import struct.Form;
@@ -27,7 +28,7 @@ public class UsefulMethods {
         boolean flag;
         for (int i = 0; i < bytes.size(); i++){
             flag = true;
-            for (int j = 0; j < bytes.get(0).length; j++) {
+            for (int j = 0; j < bytes.get(i).length; j++) {
                 if (b[j] != bytes.get(i)[j]) {
                     flag = false;
                     break;
@@ -41,7 +42,7 @@ public class UsefulMethods {
 
     public static ArrayList<byte[]> generateHash(String s, String algorithm, int MODULE, boolean USE_MODULE, int shingleLength)
             throws NoSuchAlgorithmException {
-        return generateHash(s, Hash.getHashAlgo(algorithm), MODULE, USE_MODULE, shingleLength);
+        return generateHash(s, Hash.getHashAlgorithm(algorithm), MODULE, USE_MODULE, shingleLength);
     }
 
 
@@ -80,7 +81,7 @@ public class UsefulMethods {
 
 
     public static byte[] hashing(String s, String algorithm) throws NoSuchAlgorithmException {
-      return hashing(s, Hash.getHashAlgo(algorithm));
+      return hashing(s, Hash.getHashAlgorithm(algorithm));
     }
 
     public static byte[] hashing(String s, Hash algo) throws NoSuchAlgorithmException {
@@ -110,9 +111,8 @@ public class UsefulMethods {
         StringBuilder result = new StringBuilder();
 
         for (int[] a : list) {
-            for (int i = a[0]; i <= a[1]; i++) {
-                strings.set(i - 1, "<span class=\"redflag\">" + strings.get(i - 1) + "</span>");
-            }
+            strings.set(a[0] - 1, "<span class=\"redflag\">" + strings.get(a[0] - 1));
+            strings.set(a[1] - 1, strings.get(a[1] - 1) + "</span>");
         }
 
         for (String s: strings) {
@@ -126,7 +126,7 @@ public class UsefulMethods {
     public static String getFileExtension(String fileName) {
         int i = fileName.lastIndexOf('.');
         if (i > 0) {
-            return fileName.substring(i+1);
+            return fileName.substring(i + 1);
         }
         return "";
     }
@@ -138,18 +138,18 @@ public class UsefulMethods {
                                         Form form,
                                         int index1,
                                         int index2) throws IOException, NoSuchAlgorithmException {
-        Start start;
+        initWinnowing initWinnowing;
         for (int i = 0; i < filesPath1.size(); i++) {
             File file1 = new File(filesPath1.get(i));
             for (int j = 0; j < filesPath2.size(); j++) {
                 File file2 = new File(filesPath2.get(j));
 
-                start = new Start(file1.getAbsolutePath(), file2.getAbsolutePath(), "sha-1",
+                initWinnowing = new initWinnowing(file1.getAbsolutePath(), file2.getAbsolutePath(), "sha-1",
                         form.getNgramLength(), form.getWindowLength());
 
                 if(!form.isShowZeroScore())
-                    if(start.getWinnowing().getScore() == 0)
-                        return;
+                    if(initWinnowing.getWinnowing().getScore() == 0)
+                        continue;
 
                 String filenames = file1.getName() + '\n' +
                         file2.getName() + '\n' +
@@ -158,26 +158,26 @@ public class UsefulMethods {
 
                 String resultPath = createResultDir(uploadDir, index1, index2, i, file1, j, file2);
 
-                if(start.getIntervals1() != null) {
+                if(initWinnowing.getIntervals1() != null) {
                     List<String> content1 = Files.readAllLines(Path.of(file1.getPath()));
                     List<String> content2 = Files.readAllLines(Path.of(file2.getPath()));
 
                     String result1, result2;
                     ArrayList<int[]> list1, list2;
 
-                    list1 = start.getIntervals1();
-                    list2 = start.getIntervals2();
+                    list1 = initWinnowing.getIntervals1();
+                    list2 = initWinnowing.getIntervals2();
 
                     result1 = highlightText(content1, list1);
                     result2 = highlightText(content2, list2);
 
-                    writeToFiles(form, start, filenames, resultPath, result1, result2);
+                    writeToFiles(form, initWinnowing, filenames, resultPath, result1, result2);
 
                 } else {
                     String content1 = Files.readString(Path.of(file1.getAbsolutePath()));
                     String content2 = Files.readString(Path.of(file2.getAbsolutePath()));
 
-                    writeToFiles(form, start, filenames, resultPath, content1, content2);
+                    writeToFiles(form, initWinnowing, filenames, resultPath, content1, content2);
                 }
             }
         }
@@ -195,20 +195,31 @@ public class UsefulMethods {
         return resultPath;
     }
 
-    private static void writeToFiles(Form form, Start start, String filenames,
+    private static void writeToFiles(Form form, initWinnowing initWinnowing, String filenames,
                                      String resultPath,
                                      String content1, String content2) throws NoSuchAlgorithmException, IOException {
 
-        String score = String.valueOf(start.getWinnowing().getScore()) + '\n';
+        String score;
+        int index = 3;
+        if(Double.isNaN(initWinnowing.getWinnowing().getScore()))
+            score = "The ngram is too long\n";
+        else
+            score = getFormatDouble(initWinnowing.getWinnowing().getScore(), index) + '\n';
+
+
         if(form.isLevenshtein()){
-            double levenScore = levenshteinScore(start.getS1(), start.getS2());
-            score += "Levenshtein distance: " + levenScore + '\n';
+            double levenScore = levenshteinScore(initWinnowing.getS1(), initWinnowing.getS2());
+            score += "Levenshtein: " + getFormatDouble(levenScore, index) + '\n';
         }
 
         if(form.isShingles()){
-            double shingleScore = new Shingle(start.getS1(), start.getS2(), "sha-1",
+            double shingleScore = new Shingle(initWinnowing.getS1(), initWinnowing.getS2(), "sha-1",
                     form.getShingleLen(),form.getModuleVal(), form.isModule()).getScore();
-            score += "Shingle algorithm: " + shingleScore + '\n';
+
+            if(Double.isNaN(shingleScore))
+                score += "The shingle is too long\n";
+            else
+                score += "Shingle algorithm: " + getFormatDouble(shingleScore, index) + '\n';
         }
 
         writeToFiles(resultPath, filenames, content1, content2, score);
@@ -360,5 +371,21 @@ public class UsefulMethods {
             }
         }
         return rows;
+    }
+
+    public static void sortTableRows(String sorting, String sortOrder, ArrayList<Row> rows){
+        switch (sorting) {
+            case "score" : if (sortOrder.equals("desc")) rows.sort(new ScoreComparatorDESC()); else rows.sort(new ScoreComparatorASC()); break;
+            case "index" : if (sortOrder.equals("desc")) rows.sort(new IndexComparatorDESC()); else rows.sort(new IndexComparatorASC()); break;
+            case "firstFile" : if (sortOrder.equals("desc")) rows.sort(new FirstFileComparatorDESC()); else rows.sort(new FirstFileComparatorASC()); break;
+            case "secondFile" : if (sortOrder.equals("desc")) rows.sort(new SecondFileComparatorDESC()); else rows.sort(new SecondFileComparatorASC()); break;
+        }
+    }
+
+    public static String getFormatDouble(double d, int i){
+        String temp = String.valueOf(d);
+        int index = temp.lastIndexOf(".");
+        if (temp.length() < index + i + 1) return temp;
+        return temp.substring(0, index + i + 1);
     }
 }
