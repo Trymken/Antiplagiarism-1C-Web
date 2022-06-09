@@ -16,7 +16,7 @@ import java.util.Set;
 
 import static algorithms.Tokenizer.setTokens;
 
-public class Start {
+public class initWinnowing {
 
     private CommonTokenStream tokensList1 = null;
     private CommonTokenStream tokensList2 = null;
@@ -26,7 +26,7 @@ public class Start {
     private final Winnowing winnowing;
 
 
-    public Start(String text1, String text2, String algorithm, int ngram, int window)
+    public initWinnowing(String text1, String text2, String algorithm, int ngram, int window)
             throws IOException, NoSuchAlgorithmException {
 
         s1 = getTokens(text1);
