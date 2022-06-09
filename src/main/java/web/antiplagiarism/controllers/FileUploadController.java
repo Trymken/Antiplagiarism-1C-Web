@@ -2,7 +2,6 @@ package web.antiplagiarism.controllers;
 
 
 import algorithms.FileWalker;
-import algorithms.comparators.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -155,12 +154,7 @@ public class FileUploadController {
         if (list == null) return "uploads";
         ArrayList<Row> rows = getTableRows(list, uploadLocalDir, false);
 
-        switch (sorting) {
-            case "score" : if (sortOrder.equals("desc")) rows.sort(new ScoreComparatorDESC()); else rows.sort(new ScoreComparatorASC()); break;
-            case "index" : if (sortOrder.equals("desc")) rows.sort(new IndexComparatorDESC()); else rows.sort(new IndexComparatorASC()); break;
-            case "firstFile" : if (sortOrder.equals("desc")) rows.sort(new FirstFileComparatorDESC()); else rows.sort(new FirstFileComparatorASC()); break;
-            case "secondFile" : if (sortOrder.equals("desc")) rows.sort(new SecondFileComparatorDESC()); else rows.sort(new SecondFileComparatorASC()); break;
-        }
+        sortTableRows(sorting, sortOrder, rows);
 
         model.addAttribute("rows", rows);
         model.addAttribute("tableId", id);
