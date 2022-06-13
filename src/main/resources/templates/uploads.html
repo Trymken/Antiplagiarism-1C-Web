@@ -2,12 +2,14 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Title</title>
+        <title>Files</title>
+        <link rel="shortcut icon" th:href="@{/images/java.png}"/>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
         <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
         <link rel="stylesheet" th:href="@{/css/uploads.css}">
+        <script th:src="@{/js/uploads.js}"></script>
     </head>
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -33,10 +35,10 @@
             <table class="table">
                 <thead class="thead-light">
                 <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">First file</th>
-                    <th scope="col">Second file</th>
-                    <th scope="col">Score</th>
+                    <th scope="col"><a id="Index" href="javascript: void(0)" style="text-decoration: none">#</a></th>
+                    <th scope="col"><a id="FirstFile" href="javascript: void(0)" style="text-decoration: none">First file</a></th>
+                    <th scope="col"><a id="SecondFile" href="javascript: void(0)" style="text-decoration: none">Second file</a></th>
+                    <th scope="col"><a id="Score" href="javascript: void(0)" style="text-decoration: none">Score</a></th>
                     <th scope="col">Result</th>
                 </tr>
                 </thead>
