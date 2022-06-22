@@ -4,6 +4,7 @@ import antlr4.oneC.OneCLexer;
 import antlr4.oneC.OneCParser;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ConsoleErrorListener;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -52,14 +53,17 @@ public class initWinnowing {
         content = content.toLowerCase();
 
         OneCLexer lexer = new OneCLexer(CharStreams.fromString(content));
+        lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
 
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         OneCParser parser = new OneCParser(tokens);
+        parser.removeErrorListener(ConsoleErrorListener.INSTANCE);
         parser.startFile();
         if(tokensList1 == null)
             tokensList1 = tokens;
         else
             tokensList2 = tokens;
+
 
         return setTokens(tokens);
     }
