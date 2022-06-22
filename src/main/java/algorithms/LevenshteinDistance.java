@@ -63,7 +63,7 @@ public class LevenshteinDistance {
         return (1 - (a * 1.0 / Math.max(s1.length(), s2.length()))) * 100;
     }
 
-    public static void main(String[] args) {
-        System.out.println(levenshteinDistance("Счастье", "Солнце"));
-    }
+//    public static void main(String[] args) {
+//        System.out.println(levenshteinDistance("Счастье", "Солнце"));
+//    }
 }
