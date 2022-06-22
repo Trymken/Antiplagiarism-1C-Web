@@ -4,8 +4,8 @@ package algorithms;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
-import static algorithms.UsefulMethods.contains;
-import static algorithms.UsefulMethods.generateHash;
+import static algorithms.Utils.contains;
+import static algorithms.Utils.generateHash;
 
 public class Shingle {
 
