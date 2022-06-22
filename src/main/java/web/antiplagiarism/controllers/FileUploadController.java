@@ -6,6 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.WebUtils;
 import org.xml.sax.SAXException;
 import struct.Form;
@@ -27,13 +28,14 @@ import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static algorithms.UsefulMethods.*;
+import static algorithms.Utils.*;
 
 @Controller
 public class FileUploadController {
 
     private static final String uploadDirectory =  "./uploads";
-    private static final ArrayList<String> extensions = new ArrayList<>(List.of(new String[]{"zip", "rar"}));
+    private static final ArrayList<String> extensions = new ArrayList<>(List.of(new String[]{"zip"}));
+
 
     @RequestMapping("/")
     public String uploadPage(Model model){
@@ -61,7 +63,7 @@ public class FileUploadController {
                 uploadDir.mkdir();
             }
         } else throw new InvalidFileExtensionException(
-                "Invalid file extension, please upload a file with the extension .zip, .rar");
+                "Invalid file extension, please upload a file with the extension .zip");
 
         Cookie cookie = new Cookie("uuid", UUID.randomUUID().toString());
         String uuid = cookie.getValue();
@@ -74,27 +76,7 @@ public class FileUploadController {
 
         createDirectories(file1.length, uploadLocalDir);
         unzipMultipartFiles(file1, uploadLocalDir);
-
-        for (int i = 0; i < file1.length; i++) {
-            FileWalker fw1 = new FileWalker();
-            fw1.walk(uploadLocalDir + '\\' + i);
-            for (int j = i + 1; j < file1.length; j++) {
-                FileWalker fw2 = new FileWalker();
-                fw2.walk(uploadLocalDir + '\\' + String.format("%d", j));
-                String archivenames = String.format("%s\n%s", file1[i].getOriginalFilename(), file1[j].getOriginalFilename());
-                cartesianProduct(fw1.getListFilesBsl(), fw2.getListFilesBsl(), uploadLocalDir, form, i, j);
-                if(form.isCheckXml())
-                    cartesianProductXml(fw1.getListFilesXml(), fw2.getListFilesXml(), uploadLocalDir, form, i, j);
-                String dir = uploadLocalDir + '\\' + "Results" + '\\' + i + '_' + j + '\\' + "archivenames.txt";
-                try {
-                    Files.write(Path.of(dir), archivenames.getBytes());
-                } catch (NoSuchFileException e) {
-                    new File(uploadLocalDir + '\\' + "Results").mkdir();
-                    new File(uploadLocalDir + '\\' + "Results" + '\\' + i + '_' + j).mkdir();
-                    Files.write(Path.of(dir), archivenames.getBytes());
-                }
-            }
-        }
+        checkFiles(file1, form, uploadLocalDir);
 
         response.addCookie(cookie);
 
@@ -108,15 +90,40 @@ public class FileUploadController {
     }
 
 
+
+
     @RequestMapping("/files")
-    public String showFiles(Model model, HttpServletRequest request) throws IOException, CookieException {
+    public String showFiles(Model model,
+                            HttpServletRequest request,
+                            @ModelAttribute("greaterScore") String attribute,
+                            @ModelAttribute("numOfFiles") String numberOfFiles)
+            throws IOException, CookieException {
+
         String uuid;
+        double score;
+        int numOfFiles;
         try {
             uuid = Objects.requireNonNull(WebUtils.getCookie(request, "uuid")).getValue();
         }
         catch (NullPointerException e){
             throw new CookieException("Cookie not found. Please reupload your files again.");
         }
+
+        try {
+            score = Double.parseDouble(attribute);
+            if (score < 0) score = 0.0;
+        } catch (Exception e){
+            score = 0.0;
+        }
+
+        try {
+            numOfFiles = Integer.parseInt(numberOfFiles);
+            if (numOfFiles < 0) numOfFiles = 1;
+        } catch (Exception e){
+            numOfFiles = 1;
+        }
+
+        System.out.println(numberOfFiles);
 
         String uploadLocalDir = uploadDirectory + '\\' + uuid + '\\' + "Results";
 
@@ -124,24 +131,38 @@ public class FileUploadController {
         File[] list = root.listFiles();
         if (list == null) return "table";
         ArrayList<Row> rows = getTableRows(list, uploadLocalDir, true);
-
+        rows = getTableRowsByScore(rows, uploadLocalDir, score, numOfFiles);
 
         model.addAttribute("rows", rows);
         return "table";
+    }
+
+    @PostMapping("/files")
+    public String showfilesPost(@RequestParam("greaterScore") Double score,
+                                @RequestParam("numberOfFiles") Integer numFiles,
+                                RedirectAttributes ra){
+
+        ra.addFlashAttribute("greaterScore", score);
+        ra.addFlashAttribute("numOfFiles", numFiles);
+        return "redirect:/files";
     }
 
     @RequestMapping("/files/{id}")
     public String getTable(Model model, @PathVariable(value = "id") Integer id, HttpServletRequest request)
             throws CookieException, IOException {
 
-        String uuid, sorting, sortOrder;
+        String uuid = "", sorting = "", sortOrder;
         try {
+            uuid = Objects.requireNonNull(WebUtils.getCookie(request, "uuid")).getValue();
             sorting = Objects.requireNonNull(WebUtils.getCookie(request, "sort")).getValue();
             sortOrder = Objects.requireNonNull(WebUtils.getCookie(request, "orderBy")).getValue();
-            uuid = Objects.requireNonNull(WebUtils.getCookie(request, "uuid")).getValue();
         }
         catch (NullPointerException e){
-            throw new CookieException("Cookie not found. Please reupload your files again.");
+                sortOrder = "desc";
+            if (sorting.equals(""))
+                sorting = "index";
+            if (uuid.equals(""))
+                throw new CookieException("Cookie not found. Please reupload your files again.");
         }
 
         String uploadLocalDir = uploadDirectory + '\\' + uuid + '\\' + "Results";
